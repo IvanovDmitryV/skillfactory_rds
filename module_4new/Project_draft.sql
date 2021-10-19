@@ -136,4 +136,57 @@ where
     fl.status not in ('Cancelled') 
 order by 
     fl.scheduled_departure*/
-	
+select 
+    amn.aircraft_code,
+    amn.amount,
+    max(amn.Economy_cnt)
+from
+    (select
+        tf.flight_id,
+        fl.aircraft_code,
+        tf.amount,
+
+        sum((tf.fare_conditions = 'Economy')::int) as Economy_cnt,
+
+        sum((tf.fare_conditions = 'Economy')::int * tf.amount) as Economy_amount
+    from 
+        dst_project.ticket_flights as tf
+            join dst_project.flights as fl on tf.flight_id=fl.flight_id
+    where 
+        fl.departure_airport = 'AAQ' and
+        tf.fare_conditions = 'Economy'
+    group by 
+        tf.flight_id,
+        fl.aircraft_code,
+        tf.amount) as amn
+group by
+    amn.aircraft_code,
+    amn.amount
+    
+order by 
+    amn.aircraft_code
+/****/
+select
+    tf.flight_id,
+    count (*) as all_pass_count,
+    sum((tf.fare_conditions = 'Business')::int) as Business_cnt,
+    sum((tf.fare_conditions = 'Economy')::int) as Economy_cnt,
+    sum(tf.amount) as all_pass_amount,
+    sum((tf.fare_conditions = 'Business')::int * tf.amount) as Business_amount,
+    sum((tf.fare_conditions = 'Economy')::int * tf.amount) as Economy_amount,
+--    case when fl.aircraft_code = '733' then (13400*6 + 12200*112 + )
+--        else (6900*5 + 6300*80) as 
+--        end,    
+from 
+    dst_project.ticket_flights as tf
+        join dst_project.flights as fl on tf.flight_id=fl.flight_id
+group by 
+    tf.flight_id
+
+/*select 
+    CASE
+    WHEN 2>1 THEN 2
+    ELSE 1
+END*/
+
+
