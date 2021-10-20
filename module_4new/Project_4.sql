@@ -188,7 +188,7 @@ from
 where 
     ar.city = 'Anapa' and
     extract(year from fl.actual_arrival) = 2017 and
-    extract(month from fl.actual_arrival) in (1,2,12)
+    extract(month from fl.actual_arrival) in (1,2,12) and
 	fl.status not in ('Cancelled')
 
  
@@ -268,8 +268,9 @@ with
                 join dst_project.airports as arr on fl.arrival_airport = arr.airport_code
     where 
         fl.departure_airport = 'AAQ' and 
-        (date_trunc('month', fl.scheduled_departure) in ('2017-01-01','2017-02-01', '2017-12-01')) and 
-        fl.status not in ('Cancelled')
+        extract(year from fl.actual_arrival) = 2017 and
+        extract(month from fl.actual_arrival) in (1,2,12) and
+	    fl.status not in ('Cancelled') 
     )
 ,
 	/* получаем таблицу количества пассажиров (total, business и economy) и  */   
@@ -426,10 +427,10 @@ select
 	bd.business_booking_date,   -- даты бронирований бизнесс класса
 	bd.economy_booking_date     -- даты бронирований эконом класса
 from flight_info as fi 
-	join fuel_consmpt as fc on fi.aircraft_code=fc.aircraft_code
-	join capacity as cp on fi.aircraft_code=cp.aircraft_code	
-	join amount as am on fi.flight_id=am.flight_id
-	join potential_amount as pa on fi.aircraft_code=pa.aircraft_code
-	join booking_date as bd on fi.flight_id = bd.flight_id
+	left join fuel_consmpt as fc on fi.aircraft_code=fc.aircraft_code
+	left join capacity as cp on fi.aircraft_code=cp.aircraft_code	
+	left join amount as am on fi.flight_id=am.flight_id
+	left join potential_amount as pa on fi.aircraft_code=pa.aircraft_code
+	left join booking_date as bd on fi.flight_id = bd.flight_id
 order by 
 	row_num
