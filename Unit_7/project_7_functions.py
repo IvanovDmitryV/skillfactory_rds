@@ -1,3 +1,24 @@
+import pandas as pd
+import numpy as np
+import json
+import time
+import re
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from project_7_constants import *
+
+from datetime import datetime
+from datetime import date
+
+from catboost import CatBoostRegressor
+from sklearn.preprocessing import LabelEncoder
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from tqdm import tqdm
+from bs4 import BeautifulSoup
+
 def describe_df(df):
     '''
     Вывод простой статистки DataFrame
@@ -21,11 +42,9 @@ def get_marks_models():
     
     '''
     url_for_marks_models = 'https://auto.ru/catalog/cars/all/'
-    
     marks_models = dict() 
 
-
-    driver = webdriver.Chrome(service=service)  # открываем driver
+    driver = webdriver.Chrome(executable_path)  # открываем driver
     driver.maximize_window()                    # масксимизируем окно
 
     for pages_num in range(1,20):
@@ -112,8 +131,8 @@ def get_model_generation_year(marks_models_for_parsing):
     marks_models_for_parsing - pd.Series в котором
         индекс: марка автомобиля
         значение: список моделей данной марки
-    '''
-    driver = webdriver.Chrome(service=service)  # запускаем процесс браузера
+    '''  
+    driver = webdriver.Chrome(executable_path)  # запускаем процесс браузера
     driver.maximize_window()                    # масксимизируем окно    
     
     model_generation_year = pd.DataFrame(columns = ['full_name','bodytype','generation_year'])
