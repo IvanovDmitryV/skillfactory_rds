@@ -155,11 +155,9 @@ def get_features_from_ticket(ticket_url, driver):
     возвращает pd.Series с признакамии полученными из карточки обьявления
     
     ticket_url: str, ссылка на страницу обьявления
-    service : обьект selenium.webdriver.chrome.service
-        
+    driver: WebDriver, selenium.webdriver.chrome.webdriver.WebDriver
     '''
     features = pd.Series(index = data_columns)
-    
     # получем html карточки текщего обьявления
     driver.get(ticket_url)
     # Находим и кликаем 'Все опции'
@@ -169,8 +167,9 @@ def get_features_from_ticket(ticket_url, driver):
     except Exception: pass
     # Получаем содержимое html-страницы:
     ticket_res = driver.execute_script("return document.body.innerHTML;")
+    # Закрываем процесс браузера:
     # создаем обьект bs4.BeautifulSoup из html карточки текщего обьявления
-    ticket_bs = BeautifulSoup(ticket_res, 'html.parser')  
+    ticket_bs = BeautifulSoup(ticket_res, 'html.parser')  # 'html.parser'
     # проверка корректности результата BeautifulSoup
     if ticket_bs:
     # получение признаков из карточки текущего обьявления
@@ -178,14 +177,13 @@ def get_features_from_ticket(ticket_url, driver):
         try: features['bodyType'] = ticket_bs.find('li',class_='CardInfoRow_bodytype').find('a').text
         except Exception: features['bodytype'] = np.NaN
         # brand        
-        try: features['brand'] = ticket_bs.find_all(
-            'a',class_='CardBreadcrumbs__itemText')[2].text.strip().upper()
-        except Exception: features['brand'] = np.NaN      
+        try: features['brand'] = ticket_url.split('/')[-4].upper()
+        except Exception: features['brand'] = np.NaN
         # car_url
-        features['car_url'] = ticket_url    
+        features['car_url'] = ticket_url
         # color        
         try: features['color'] = ticket_bs.find('li',class_='CardInfoRow_color').find('a').text
-        except Exception: features['color'] = np.NaN   
+        except Exception: features['color'] = np.NaN 
         # description
         try:
             rows = ticket_bs.find('div',class_='CardDescriptionHTML').find_all('span')
@@ -193,15 +191,15 @@ def get_features_from_ticket(ticket_url, driver):
         except Exception: features['description'] = np.NaN
         #engineDisplacement            
         try: 
-            engineDisplacement = ticket_bs.find(
-                'li',class_='CardInfoRow_engine').find('div').text.split(' / ')[0]
+            engineDisplacement = ticket_bs.find('li',class_='CardInfoRow_engine').find('div').text.split(' / ')[0]
             features['engineDisplacement'] =  re.sub("[^\d.]", "", engineDisplacement)
         except Exception: features['engineDisplacement'] = np.NaN
         # enginePower
         try: 
-            enginePower = ticket_bs.find('li',class_='CardInfoRow_engine').find('div').text.split(' / ')[1]
+            enginePower = ticket_bs.find(
+                'li',class_='CardInfoRow_engine').find('div').text.split(' / ')[1]
             features['enginePower'] = re.sub("\D", "", enginePower)
-        except Exception: features['enginePower'] = np.NaN
+        except Exception: features['enginePower'] = np.NaN            
         # equipment_dict 
         try: 
             complectation_groups = ticket_bs.find(
@@ -209,7 +207,7 @@ def get_features_from_ticket(ticket_url, driver):
                 'div',class_='ComplectationGroupsDesktop__group')
             features['equipment_dict'] = {
                 group.text.split('•')[0]: group.text.split('•')[1:] for group in complectation_groups}
-        except Exception: features['equipment_dict'] = np.NaN
+        except Exception: features['equipment_dict'] = np.NaN             
         # fuelType
         try: features['fuelType'] = ticket_bs.find(
             'li',class_='CardInfoRow_engine').find('div').text.split(' / ')[2]
@@ -218,12 +216,10 @@ def get_features_from_ticket(ticket_url, driver):
         try:
             mileage = ticket_bs.find('li',class_='CardInfoRow_kmAge').find_all('span')[1].text
             features['mileage'] = re.sub("\D", "", mileage)
-        except Exception: features['mileage'] = np.NaN             
+        except Exception: features['mileage'] = np.NaN            
         # model_name
-        brand = features['brand']
-        model_name_start = ticket_url.find(brand.lower()) + len(brand) + 1
-        model_name_end = ticket_url.find('/',model_name_start)
-        features['model_name'] = ticket_url[model_name_start:model_name_end].upper()          
+        try: features['model_name'] = ticket_url.split('/')[-3].upper()
+        except Exception: features['model_name'] = np.NaN            
         # numberOfDoors
         try:
             numberOfDoors_tag = ticket_bs.find('li',class_='CardInfoRow_bodytype').find('a')
@@ -231,7 +227,8 @@ def get_features_from_ticket(ticket_url, driver):
             features['numberOfDoors'] = int(numberOfDoors_pre[0])
         except Exception: features['numberOfDoors'] = np.NaN
         # productionDate
-        try: features['productionDate'] = ticket_bs.find('li',class_='CardInfoRow_year').find('a').text
+        try: features['productionDate'] = ticket_bs.find(
+            'li',class_='CardInfoRow_year').find('a').text
         except Exception: features['productionDate'] = np.NaN
         # sell_id
         try:         
@@ -243,27 +240,25 @@ def get_features_from_ticket(ticket_url, driver):
         try:
             features['vehicleTransmission'] = (ticket_bs.find('li',class_='CardInfoRow_transmission').
                                                find_all('span')[1].text)
-        except Exception: features['vehicleTransmission'] = np.NaN
+        except Exception: features['vehicleTransmission'] = np.NaN            
         # vendor
         european = ['SKODA', 'AUDI',  'VOLVO', 'BMW', 'MERCEDES', 'VOLKSWAGEN']
         japanese = ['HONDA','NISSAN','TOYOTA','INFINITI',  'LEXUS', 'MITSUBISHI']
         if features['brand'] in european :  features['vendor'] = 'EUROPEAN'
         elif features['brand'] in japanese :  features['vendor'] = 'JAPANESE'
-        else: features['vendor'] = 'NAN'
+        else: features['vendor'] = 'NAN'  
         # Владение
-        try: features['Владение'] = ticket_bs.find(
-            'li',class_='CardInfoRow_owningTime').find_all('span')[1].text
-        except Exception: features['Владение'] = np.NaN
+        try: features['Владение'] = ticket_bs.find('li',class_='CardInfoRow_owningTime').find_all('span')[1].text
+        except Exception: features['Владение'] = np.NaN             
         # Владельцы
-        try: features['Владельцы'] = ticket_bs.find(
-            'li',class_='CardInfoRow_ownersCount').find_all('span')[1].text
-        except Exception: features['Владельцы'] = np.NaN
+        try: features['Владельцы'] = ticket_bs.find('li',class_='CardInfoRow_ownersCount').find_all('span')[1].text
+        except Exception: features['Владельцы'] = np.NaN            
         # ПТС
         try: features['ПТС'] = ticket_bs.find('li',class_='CardInfoRow_pts').find_all('span')[1].text
-        except Exception: features['ПТС'] = np.NaN
+        except Exception: features['ПТС'] = np.NaN               
         # Привод
         try: features['Привод'] = ticket_bs.find('li',class_='CardInfoRow_drive').find_all('span')[1].text
-        except Exception: features['Привод'] = np.NaN 
+        except Exception: features['Привод'] = np.NaN            
         # Руль
         try: features['Руль'] = ticket_bs.find('li',class_='CardInfoRow_wheel').find_all('span')[1].text 
         except Exception: features['Руль'] = np.NaN         
@@ -280,6 +275,5 @@ def get_features_from_ticket(ticket_url, driver):
                                      modelDate_tag[4].text.strip())  
         except Exception: features['modelDate'] = np.NaN   
     return features
-
 
 
