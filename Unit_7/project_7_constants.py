@@ -15,12 +15,18 @@ data_columns = ['bodyType', 'brand', 'car_url', 'color', 'description', 'engineD
                       'Владельцы', 'Владение', 'ПТС', 'Привод', 'Руль', 'offerprice']
 # 
 externdata_train_uni_columns = ['bodyType', 'brand', 'color', 'engineDisplacement', 'enginePower', 
-                'equipment_dict','fuelType', 'mileage', 'modelDate', 'model_name', 'numberOfDoors', 
-                'productionDate', 'vehicleTransmission', 'vendor', 
-                'Владельцы', 'Владение', 'ПТС', 'Привод', 'Руль']
-#
-externdata_test_uni_columns = ['bodyType', 'brand', 'color', 'engineDisplacement', 'enginePower', 
                  'Комплектация','fuelType', 'mileage', 'modelDate', 'model', 'numberOfDoors', 
                 'productionDate', 'vehicleTransmission', 
                 'Владельцы', 'Владение', 'ПТС', 'Привод', 'Руль', 'price']
 #
+externdata_test_uni_columns = ['bodyType', 'brand', 'color', 'engineDisplacement', 'enginePower', 
+                'equipment_dict','fuelType', 'mileage', 'modelDate', 'model_name', 'numberOfDoors', 
+                'productionDate', 'vehicleTransmission', 'vendor', 
+                'Владельцы', 'Владение', 'ПТС', 'Привод', 'Руль']
+#
+parsdata_uni_columns = ['model_name', 'equipment_dict', 'brand', 'modelDate', 
+                 'productionDate', 'ПТС','mileage', 'car_url', 'engineDisplacement', 
+                 'numberOfDoors', 'enginePower', 'vendor', 'color', 'vehicleTransmission', 
+                 'sell_id', 'Владельцы', 'Руль', 'bodyType', 'Привод']
+#
+

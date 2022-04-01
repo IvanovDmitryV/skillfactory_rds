@@ -276,4 +276,156 @@ def get_features_from_ticket(ticket_url, driver):
         except Exception: features['modelDate'] = np.NaN   
     return features
 
+def externdata_train_bodyType_uni(x):
+    res=[]
+    x = x.lower() if type(x) == str else x  # <================
+    try:
+        for body_type in test.bodyType.unique():
+            if body_type in x:
+                res.append(body_type)
+    except Exception: return x
+    if not res: 
+        return x.split()[0]
+    return max(res)
 
+def externdata_train_engineDisplacement_uni(x):
+    x = float(re.sub("[^\d.]", r'', x)) if re.sub("[^\d.]", r'', x) else 0
+    if x >= 7: x = 0
+    return x
+
+def externdata_train_equipment_uni(x):
+    point = "'available_options': "
+    start = x.find(point)+len(point)+2
+    finish = x.find("]",start) - 1
+    return x[start:finish].split("', '")
+
+def externdata_test_ownership_uni(x):
+    try:
+        digits = re.findall('\d+',x) 
+        if len(digits) == 2: res = int(digits[0])*12 + int(digits[1])
+        elif len(digits) == 1 and 'месяц' in x: res = int(digits[0])
+        elif len(digits) == 1 and 'месяц' not in x: res = int(digits[0])*12
+    except Exception: res = 0   
+    return res
+
+def externdata_train_ownership_uni(x):
+    tmp = json.loads(x.replace("'",'"'))  if x==x else {'year': 2020, 'month': 9}
+    res = (2020 - tmp['year'])*12 + tmp['month'] - 9
+    if res<0: res = 0
+    return res
+
+
+def externdata_train_unification(df_to_proc):
+    df = df_to_proc.copy()[externdata_train_uni_columns]
+    color_codes = {'040001': 'чёрный','FAFBFB': 'белый', '0000CC': 'синий', 
+                   '200204': 'коричневый', 'EE1D19': 'красный', 'CACECB': 'серый',
+                   'C49648': 'бежевый', '97948F': 'серебристый', 'FFD600': 'жёлтый',
+                   'FF8649': 'оранжевый', '22A0F8': 'голубой','FFC0CB': 'розовый', 
+                   'DEA522': 'золотистый', '007F00': 'зелёный', '660099': 'пурпурный',
+                   '4A2197': 'фиолетовый'}
+    transmission_dict = {'MECHANICAL':'механическая', 'AUTOMATIC':'автоматическая', 
+                         'ROBOT':'роботизированная','VARIATOR':'вариатор'}
+    vendor_dict = {'AUDI':'EUROPEAN','BMW':'EUROPEAN','HONDA':'JAPANESE','INFINITI':'JAPANESE',
+                   'LEXUS':'JAPANESE','MERCEDES':'EUROPEAN','MITSUBISHI':'JAPANESE',
+                   'NISSAN':'JAPANESE','SKODA':'EUROPEAN','TOYOTA':'JAPANESE',
+                   'VOLKSWAGEN':'EUROPEAN','VOLVO':'EUROPEAN'}
+    PTS_dict = {'ORIGINAL': 'Оригинал', 'DUPLICATE': 'Дубликат'}
+    wheel_dict = {'LEFT':'Левый', 'RIGHT':'Правый'}
+    # bodyType
+    df.dropna(subset=['bodyType'],inplace=True)
+    df.bodyType = df.bodyType.apply(externdata_train_bodyType_uni)
+    # color
+    df.color = df.color.map(color_codes)
+    # engineDisplacement
+    df.engineDisplacement = df.engineDisplacement.apply(externdata_train_engineDisplacement_uni)
+    # enginePower
+    df.enginePower = df.enginePower.astype(int)
+    # equipment_dict
+    df['equipment_dict'] = df.Комплектация.apply(externdata_train_equipment_uni)
+    df.drop(columns=['Комплектация'],inplace=True)
+    # modelDate 
+    df.modelDate = df.modelDate.astype(int)
+    # model_name
+    df['model_name'] = df.model
+    df.drop(columns=['model'],inplace=True)
+    # numberOfDoors
+    df.numberOfDoors = df.numberOfDoors.astype(int)
+    # vehicleTransmission
+    df.vehicleTransmission = df.vehicleTransmission.map(transmission_dict)
+    # vendor
+    df['vendor'] = df.brand.map(vendor_dict)
+    # Владение
+    df.Владение = df.Владение.apply(externdata_train_ownership_uni)
+    # ПТС
+    df.ПТС = df.ПТС.map(PTS_dict)
+    # Руль
+    df.Руль = df.Руль.map(wheel_dict)
+    
+    return df
+
+def externdata_test_unification(df_to_proc):
+    test = df_to_proc.copy()[externdata_test_uni_columns]
+    owner_dict = {'3 или более': 3., '2\xa0владельца': 2.,'1\xa0владелец': 1.}
+    # engineDisplacement
+    test.engineDisplacement = test.engineDisplacement.apply(
+        lambda x: float(x[:-4]) if x[:-4] else np.NaN) 
+    # enginePower
+    test.enginePower = test.enginePower.apply(lambda x: int(x[:-4]))
+    # equipment_dict
+    test.equipment_dict = test.equipment_dict.apply(
+        lambda x: list(json.loads(x).keys()) if x==x else [])
+    # Владельцы
+    test.Владельцы = test.Владельцы.map(owner_dict)
+    # Владение
+    test.Владение = test.Владение.apply(externdata_test_ownership_uni)
+    return test
+
+def parsdata_train_uniifcation(df_to_proc):
+    pars = df_to_proc.copy()[parsdata_uni_columns+['offerprice']] # <===== ПОСТАВИТЬ СПИСОК КОЛОНОК
+    # modelDate
+    model_generation_year = pd.read_csv(".\Project_7_data\model_generation_year.csv")
+    model_generation_year = dict(zip(model_generation_year.full_name + ' ' + model_generation_year.bodytype,
+             model_generation_year.generation_year))
+#     pars.modelDate = (pars.modelDate + ' ' + pars.bodyType).map(model_generation_year) 
+    pars.modelDate = pd.Series(
+        [x+' '+y if x==x else x for x,y in zip(pars.modelDate,pars.bodyType)]).\
+        map(model_generation_year)
+    # Владельцы
+    owner_dict = {
+        '3 или более': 3., 
+        '2\xa0владельца': 2.,
+        '1\xa0владелец': 1.}
+    pars.Владельцы = pars.Владельцы.map(owner_dict)
+    # equipment_dic
+    pars.equipment_dict = pars.equipment_dict[:50].apply(
+        lambda x: pd.Series(list(json.loads(x.replace("'",'"')).values())).sum()
+        if x==x else x)    
+    
+    return pars
+
+def parsdata_test_uniifcation(df_to_proc):
+    test = df_to_proc.copy()[parsdata_uni_columns] # <===== ПОСТАВИТЬ СПИСОК КОЛОНОК
+    # engineDisplacement
+    test.engineDisplacement = test.engineDisplacement.apply(
+        lambda x: float(x[:-4]) if x[:-4] else np.NaN)
+    # modelDate
+    test.modelDate = test.modelDate.astype(float)
+    # productionDate
+    test.productionDate = test.productionDate.astype(float)
+    # numberOfDoors
+    test.numberOfDoors = test.numberOfDoors.astype(float)
+    # Владельцы
+    owner_dict = {
+        '3 или более': 3., 
+        '2\xa0владельца': 2.,
+        '1\xa0владелец': 1.}
+    test.Владельцы = test.Владельцы.map(owner_dict)
+    # mileage
+    test.mileage = test.mileage.astype(float) 
+    # enginePower
+    test.enginePower = test.enginePower.apply(lambda x: float(x[:-4]))
+    # equipment_dic
+    test.equipment_dict = test.equipment_dict.apply(
+        lambda x: list(json.loads(x).keys()) if x==x else [])
+    
+    return test
