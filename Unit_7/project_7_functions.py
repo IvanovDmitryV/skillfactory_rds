@@ -191,7 +191,8 @@ def get_features_from_ticket(ticket_url, driver):
         except Exception: features['description'] = np.NaN
         #engineDisplacement            
         try: 
-            engineDisplacement = ticket_bs.find('li',class_='CardInfoRow_engine').find('div').text.split(' / ')[0]
+            engineDisplacement = ticket_bs.find(
+                'li',class_='CardInfoRow_engine').find('div').text.split(' / ')[0]
             features['engineDisplacement'] =  re.sub("[^\d.]", "", engineDisplacement)
         except Exception: features['engineDisplacement'] = np.NaN
         # enginePower
@@ -248,10 +249,12 @@ def get_features_from_ticket(ticket_url, driver):
         elif features['brand'] in japanese :  features['vendor'] = 'JAPANESE'
         else: features['vendor'] = 'NAN'  
         # Владение
-        try: features['Владение'] = ticket_bs.find('li',class_='CardInfoRow_owningTime').find_all('span')[1].text
+        try: features['Владение'] = ticket_bs.find(
+            'li',class_='CardInfoRow_owningTime').find_all('span')[1].text
         except Exception: features['Владение'] = np.NaN             
         # Владельцы
-        try: features['Владельцы'] = ticket_bs.find('li',class_='CardInfoRow_ownersCount').find_all('span')[1].text
+        try: features['Владельцы'] = ticket_bs.find(
+            'li',class_='CardInfoRow_ownersCount').find_all('span')[1].text
         except Exception: features['Владельцы'] = np.NaN            
         # ПТС
         try: features['ПТС'] = ticket_bs.find('li',class_='CardInfoRow_pts').find_all('span')[1].text
@@ -396,7 +399,7 @@ def parsdata_train_uniifcation(df_to_proc):
         '2\xa0владельца': 2.,
         '1\xa0владелец': 1.}
     pars.Владельцы = pars.Владельцы.map(owner_dict)
-    # equipment_dic
+    # equipment_dict
     pars.equipment_dict = pars.equipment_dict[:50].apply(
         lambda x: pd.Series(list(json.loads(x.replace("'",'"')).values())).sum()
         if x==x else x)    
