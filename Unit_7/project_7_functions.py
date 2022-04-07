@@ -19,6 +19,8 @@ from selenium.webdriver.common.by import By
 from tqdm import tqdm
 from bs4 import BeautifulSoup
 
+test = pd.read_csv(f'{path}test.csv',low_memory=False)
+
 def describe_df(df):
     '''
     Вывод простой статистки DataFrame
@@ -267,9 +269,9 @@ def get_features_from_ticket(ticket_url, driver):
         except Exception: features['Руль'] = np.NaN         
         # Цена предложения
         try:
-            offerprice = ticket_bs.find('span',class_='OfferPriceCaption__price').text
-            features['offerprice'] = re.sub("\D", "", offerprice)
-        except Exception: features['offerprice'] = np.NaN
+            price = ticket_bs.find('span',class_='priceCaption__price').text
+            features['price'] = re.sub("\D", "", price)
+        except Exception: features['price'] = np.NaN
         # modelDate              
         try:
             modelDate_tag = ticket_bs.find_all('a',class_='CardBreadcrumbs__itemText')
@@ -300,7 +302,8 @@ def externdata_train_equipment_uni(x):
     point = "'available_options': "
     start = x.find(point)+len(point)+2
     finish = x.find("]",start) - 1
-    return x[start:finish].split("', '")
+    res = x[start:finish].split("', '")
+    return res if res != [''] else []
 
 def externdata_test_ownership_uni(x):
     try:
@@ -319,7 +322,7 @@ def externdata_train_ownership_uni(x):
 
 
 def externdata_train_unification(df_to_proc):
-    df = df_to_proc.copy()[externdata_train_uni_columns]
+    df = df_to_proc.copy()[externdata_train_uni_columns]  
     color_codes = {'040001': 'чёрный','FAFBFB': 'белый', '0000CC': 'синий', 
                    '200204': 'коричневый', 'EE1D19': 'красный', 'CACECB': 'серый',
                    'C49648': 'бежевый', '97948F': 'серебристый', 'FFD600': 'жёлтый',
@@ -384,7 +387,7 @@ def externdata_test_unification(df_to_proc):
     return test
 
 def parsdata_train_uniifcation(df_to_proc):
-    pars = df_to_proc.copy()[parsdata_uni_columns+['offerprice']] # <===== ПОСТАВИТЬ СПИСОК КОЛОНОК
+    pars = df_to_proc.copy()[parsdata_uni_columns+['price']] # <===== ПОСТАВИТЬ СПИСОК КОЛОНОК
     # modelDate
     model_generation_year = pd.read_csv(".\Project_7_data\model_generation_year.csv")
     model_generation_year = dict(zip(model_generation_year.full_name + ' ' + model_generation_year.bodytype,

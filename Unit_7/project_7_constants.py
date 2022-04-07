@@ -12,7 +12,7 @@ marks_for_parsing = ['SKODA', 'AUDI', 'HONDA', 'VOLVO', 'BMW', 'NISSAN', 'INFINI
 data_columns = ['bodyType', 'brand', 'car_url', 'color', 'description', 'engineDisplacement', 'enginePower', 
                       'equipment_dict','fuelType', 'mileage', 'modelDate', 'model_name', 'numberOfDoors', 
                       'productionDate', 'sell_id', 'vehicleTransmission', 'vendor', 
-                      'Владельцы', 'Владение', 'ПТС', 'Привод', 'Руль', 'offerprice']
+                      'Владельцы', 'Владение', 'ПТС', 'Привод', 'Руль', 'price']
 # 
 externdata_train_uni_columns = ['bodyType', 'brand', 'color', 'engineDisplacement', 'enginePower', 
                  'Комплектация','fuelType', 'mileage', 'modelDate', 'model', 'numberOfDoors', 
