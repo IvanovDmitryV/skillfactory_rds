@@ -294,9 +294,8 @@ def externdata_train_bodyType_uni(x):
     return max(res)
 
 def externdata_train_engineDisplacement_uni(x):
-    x = float(re.sub("[^\d.]", r'', x)) if re.sub("[^\d.]", r'', x) else 0
-    if x >= 7: x = 0
-    return x
+    x = re.findall("\d[.]\d", x)[0] if ((type(x)==str)  and  re.findall("\d[.]\d", x)) else '-99' 
+    return float(x)
 
 def externdata_train_equipment_uni(x):
     point = "'available_options': "
@@ -320,9 +319,8 @@ def externdata_train_ownership_uni(x):
     if res<0: res = 0
     return res
 
-
 def externdata_train_unification(df_to_proc):
-    df = df_to_proc.copy()[externdata_train_uni_columns]  
+    df = df_to_proc.copy()[externdata_train_uni_columns + ['name']]
     color_codes = {'040001': 'чёрный','FAFBFB': 'белый', '0000CC': 'синий', 
                    '200204': 'коричневый', 'EE1D19': 'красный', 'CACECB': 'серый',
                    'C49648': 'бежевый', '97948F': 'серебристый', 'FFD600': 'жёлтый',
@@ -343,17 +341,18 @@ def externdata_train_unification(df_to_proc):
     # color
     df.color = df.color.map(color_codes)
     # engineDisplacement
-    df.engineDisplacement = df.engineDisplacement.apply(externdata_train_engineDisplacement_uni)
+    df.engineDisplacement = df.name.apply(externdata_train_engineDisplacement_uni)
+    df.drop(columns=['name'],inplace=True)
     # enginePower
     df.enginePower = df.enginePower.astype(int)
     # equipment_dict
     df['equipment_dict'] = df.Комплектация.apply(externdata_train_equipment_uni)
-    df.drop(columns=['Комплектация'],inplace=True)
+    df.drop(columns=['Комплектация'],inplace=True)    
     # modelDate 
     df.modelDate = df.modelDate.astype(int)
     # model_name
     df['model_name'] = df.model
-    df.drop(columns=['model'],inplace=True)
+    df.drop(columns=['model'],inplace=True)    
     # numberOfDoors
     df.numberOfDoors = df.numberOfDoors.astype(int)
     # vehicleTransmission
