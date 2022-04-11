@@ -294,7 +294,9 @@ def externdata_train_bodyType_uni(x):
     return max(res)
 
 def externdata_train_engineDisplacement_uni(x):
-    x = re.findall("\d[.]\d", x)[0] if ((type(x)==str)  and  re.findall("\d[.]\d", x)) else '-99' 
+#     x = re.findall("\d[.]\d", x)[0] if ((type(x)==str)  and  re.findall("\d[.]\d", x)) else '-99' 
+#     return float(x)
+    x = float(re.findall("\d[.]\d", x)[0]) if ((type(x)==str)  and  re.findall("\d[.]\d", x)) else np.NaN 
     return float(x)
 
 def externdata_train_equipment_uni(x):
