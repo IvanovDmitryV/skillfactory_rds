@@ -2,7 +2,7 @@
 <PMML xmlns="http://www.dmg.org/PMML-4_4" version="4.4.1">
     <Header copyright="Copyright (c) 2021 Software AG" description="Default description">
         <Application name="Nyoka" version="5.4.0"/>
-        <Timestamp>2023-02-17 01:21:13.780413</Timestamp>
+        <Timestamp>2023-02-23 18:14:30.130642</Timestamp>
     </Header>
     <DataDictionary numberOfFields="11">
         <DataField name="age" optype="continuous" dataType="double"/>
@@ -126,7 +126,7 @@
         <Output>
             <OutputField name="predicted_target" optype="continuous" dataType="double" feature="predictedValue"/>
         </Output>
-        <RegressionTable intercept="-2.0767117591485942">
+        <RegressionTable intercept="-2.0767117591485373">
             <NumericPredictor name="minMaxScaler(age)" exponent="1" coefficient="-2.1821816130705272"/>
             <NumericPredictor name="minMaxScaler(sex)" exponent="1" coefficient="-22.8599765400254427"/>
             <NumericPredictor name="minMaxScaler(bmi)" exponent="1" coefficient="135.5900828820316804"/>
