@@ -1,5 +1,10 @@
 from flask import Flask, request, jsonify
 import datetime
+import pickle
+import numpy as np
+
+with open('./models/model_task_7_6.pkl', 'rb') as pkl_file:
+    model = pickle.load(pkl_file)
 
 app = Flask(__name__)
 
@@ -33,6 +38,23 @@ def add():
     return jsonify({
         'result': num + 1
     })
+
+# Задание 7.6
+# Используя только что обретённые знания, напишите Flask-приложение, которое по эндпоинту /predict
+# будет слушать POST-запросы на предсказания.
+# В теле POST-запроса — список из четырёх чисел в формате JSON (один объект, четыре признака)
+# Так как на вход модели необходимо подать numpy-массив определённой размерности, а не список, не забудьте
+# перевести результат в тип np.array() и скорректировать его под размер (1, 4) с помощью reshape()
+# Ответом на запрос должен быть JSON-формат {"prediction": *число - предсказание модели*}.
+@app.route('/predict', methods=['POST'])
+def predict():
+    features = np.array(request.json)
+    features = features.reshape(1, 4)
+    prediction = model.predict(features)
+    return  jsonify({'prediction': prediction[0]})
+
+
+
 
 # ======================================================================================
 if __name__ == '__main__':
