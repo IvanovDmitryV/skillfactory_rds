@@ -18,3 +18,4 @@ Others
 *_data
 __pycache__
 data
+*venv/
