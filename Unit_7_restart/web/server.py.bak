@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 
 # загружаем модель из файла
-with open('models/model_task_7_6.pkl', 'rb') as pkl_file:
+with open('models/model.pkl', 'rb') as pkl_file:
     model = pickle.load(pkl_file)
 
 # создаём приложение
