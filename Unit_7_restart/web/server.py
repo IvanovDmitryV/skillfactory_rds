@@ -3,7 +3,7 @@ import pickle
 import numpy as np
 
 # загружаем модель из файла
-with open('models/model_task_7_6.pkl', 'rb') as pkl_file:
+with open('models/model_2.pkl', 'rb') as pkl_file:
     model = pickle.load(pkl_file)
 
 # создаём приложение
@@ -16,8 +16,10 @@ def index():
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    #ваш код здесь
-    pass
+    features = np.array(request.json)
+    features = features.reshape(1, 4)
+    prediction = model.predict(features)
+    return  jsonify({'prediction': prediction[0]})
 
 if __name__ == '__main__':
-    app.run('localhost', 5000)
+    app.run(host='0.0.0.0', port=5000)
